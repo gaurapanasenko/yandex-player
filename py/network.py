@@ -1,6 +1,6 @@
 #~ from gi.repository import Gtk, GdkPixbuf, Gdk, WebKit, GObject, GLib, Soup, Gio
 import urllib2, threading, time, cookielib, json
-from gi.repository import WebKit
+from gi.repository import WebKit, GLib
 
 class Network:
 	def __init__(self,config):
@@ -57,7 +57,7 @@ class Network:
 		#~ self.urls.append([url,function,args])
 		return True
 	def go_threaded(self,url,function,args):
-		function(self.go_direct(url),*args)
+		GLib.idle_add(function,self.go_direct(url),*args)
 	def background(self):
 		while True:
 			#~ for i in self.urls:

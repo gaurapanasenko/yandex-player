@@ -56,12 +56,14 @@ class Song:
 			dt = json.loads(data)
 			url = 'https://' + dt['host'] + '/get-mp3/' + md5.new('XGRlBW9FXlekgbPrRHuSiA' + dt['path'][1:] + dt['s']).hexdigest() + '/' + dt['ts'] + dt['path'] + '?track-id=' + str(self.trackid)
 			self.config.network.go(str(url),self.download_event,on_finish,2,*args)
-		elif stage == 2:
+		elif stage == 2 and data != False:
 			file = open(self.config.temp_folder + "/" + str(self.albumid) + "_" + str(self.trackid) + ".mp3", 'w')
 			file.write(data)
 			file.close()
 			if callable(on_finish):
 				on_finish(*args)
+		else:
+			return False
 	def get_path(self):
 		path = self.config.temp_folder + "/" + str(self.albumid) + "_" + str(self.trackid) + ".mp3"
 		if os.path.isfile(path):
@@ -82,9 +84,9 @@ class Song:
 			audio = ID3(tmp_path)
 		except ID3NoHeaderError:
 			audio = ID3()
-		audio['TIT2'] = TIT2(encoding=3, text=str(self.track))
-		audio['TPE1'] = TPE1(encoding=3, text=str(self.artist))
-		audio['TALB'] = TALB(encoding=3, text=str(self.album))
+		audio['TIT2'] = TIT2(encoding=3, text=str(self.track).decode('utf-8'))
+		audio['TPE1'] = TPE1(encoding=3, text=str(self.artist).decode('utf-8'))
+		audio['TALB'] = TALB(encoding=3, text=str(self.album).decode('utf-8'))
 		data = self.config.network.go_direct(self.bigcover)
 		audio['APIC'] = APIC(encoding=3, mime='image/jpeg', type=3, desc=u'Cover', data=data)
 		audio.save(tmp_path)

@@ -3,10 +3,8 @@ from py.network import Network
 
 class Config():
 	def __init__(self):
-		self.ui_file = "ui/yandex_player.ui"
-		self.data = {"proxy" : None}
-		#~ self.data = {proxy : "82.146.58.205:3128"}
-		#self.ui_file = "/usr/local/share/yandex_player/ui/yandex_player.ui"
+		self.ui_file = os.path.dirname(os.path.realpath(__file__)) + "/../ui/yandex_player.ui"
+		self.data = {"proxy" : None, "last_folder" : None}
 		self.config_folder = os.path.expanduser("~") + "/.config/yandex-player"
 		self.temp_folder = tempfile.gettempdir() + "/yandex-player-" + getpass.getuser()
 		self.cookies_file = self.config_folder + "/cookies.txt"

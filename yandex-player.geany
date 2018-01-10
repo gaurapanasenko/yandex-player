@@ -28,21 +28,20 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=7
-FILE_NAME_0=22;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fyandex-player.py;0;4
-FILE_NAME_1=12900;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fyandex-player-old.py;0;4
-FILE_NAME_2=85;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fconfig.py;0;4
-FILE_NAME_3=989;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2F__init__.py;0;4
-FILE_NAME_4=559;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fnetwork.py;0;4
-FILE_NAME_5=516;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fplayer.py;0;4
-FILE_NAME_6=4661;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fsignals.py;0;4
-FILE_NAME_7=2795;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fsong.py;0;4
-FILE_NAME_8=7;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fspinner.py;0;4
-FILE_NAME_9=591;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fwebbrowser.py;0;4
-FILE_NAME_10=18047;Python;0;EUTF-8;1;1;1;%2Fusr%2Flib%2Fpython2.7%2Fdist-packages%2Fmutagen%2Fid3%2F__init__.py;0;4
+current_page=3
+FILE_NAME_0=154;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fyandex-player.py;0;4
+FILE_NAME_1=201;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fconfig.py;0;4
+FILE_NAME_2=852;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2F__init__.py;0;4
+FILE_NAME_3=168;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fnetwork.py;0;4
+FILE_NAME_4=516;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fplayer.py;0;4
+FILE_NAME_5=1829;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fsignals.py;0;4
+FILE_NAME_6=3164;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fsong.py;0;4
+FILE_NAME_7=7;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fspinner.py;0;4
+FILE_NAME_8=447;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fpy%2Fwebbrowser.py;0;4
+FILE_NAME_9=419;Python;0;EUTF-8;1;1;1;%2Fhome%2Fegor%2Fprojects%2Fgit%2Fyandex-player%2Fsetup.py;0;4
 
 [VTE]
-last_dir=/home/egor/projects/git/yandex-player
+last_dir=/home/egor/projects/git/yandex-player/py
 
 [build-menu]
 EX_00_LB=_Execute

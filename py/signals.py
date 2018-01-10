@@ -84,6 +84,8 @@ class Signals:
 			if 'coverUri' in j['albums'][0]:
 				self.config.network.go(url,self.load_cover,url,ts,pti)
 	def load_cover(self,raw,url,model,iter,count=0):
+		if model.iter_is_valid(iter) is not True:
+			return False
 		if raw == False:
 			if count < 10:
 				self.config.network.go(self,raw,url,model,iter,count+1)
@@ -112,28 +114,31 @@ class Signals:
 	def on_player_scale_change_value(self, widget, scroll, value):
 		self.config.player.go_position(value)
 	def on_player_save_button_clicked(self, widget):
-		filechooserdialog = self.config.builder.get_object('song_filechooserdialog')
+		filechooserdialog = Gtk.FileChooserDialog("Save As", self.config.builder.get_object("window"),
+			Gtk.FileChooserAction.SAVE,
+			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+			Gtk.STOCK_SAVE, Gtk.ResponseType.ACCEPT))
 		filechooserdialog.set_current_name(self.config.player.song.get_label() + ".mp3")
-		self.config.player.pause()
-		filechooserdialog.show()
-	def on_song_activated(self, widget):
-		filechooserdialog = self.config.builder.get_object('song_filechooserdialog')
+		#~ self.config.player.pause()
+		response = filechooserdialog.run()
+		if response != Gtk.ResponseType.ACCEPT:
+			return False
 		filename = filechooserdialog.get_filename()
 		if filename == None:
 			return None
 		if not filename.endswith('.mp3'):
 			filename += '.mp3'
 		if os.path.exists(str(filename)) == True:
-			dialog = Gtk.MessageDialog(self.config.builder.get_object("window"),
+			dialog = Gtk.MessageDialog(filechooserdialog,
 				Gtk.DialogFlags.MODAL,
 				Gtk.MessageType.QUESTION,
 				Gtk.ButtonsType.YES_NO,
 				"Replace?")
 			response = dialog.run()
 			dialog.destroy()
-			if response == Gtk.ResponseType.NO:
+			if response != Gtk.ResponseType.YES:
 				return False
-		filechooserdialog.hide()
+		filechooserdialog.destroy()
 		if self.config.player.song.save(str(filename)) == True:
 			dialog = Gtk.MessageDialog(self.config.builder.get_object("window"),
 				Gtk.DialogFlags.MODAL,
@@ -151,21 +156,21 @@ class Signals:
 			dialog.run()
 			dialog.destroy()
 	def on_menuitem_activate(self, widget):
-		widget.show()
+		widget.run()
 	def on_gtk_preferences_activate(self, widget):
-		for i in self.config:
-			if self.config[i] is not None:
-				self.config.builder.get_object("preferences_"+i+"_entry").set_text(str(self.config[i]))
-			else:
-				self.config.builder.get_object("preferences_"+i+"_entry").set_text("")
+		if self.config['proxy'] is not None:
+			self.config.builder.get_object("preferences_proxy_entry").set_text(str(self.config['proxy']))
+		else:
+			self.config.builder.get_object("preferences_proxy_entry").set_text("")
 		widget.show()
 	def on_dialog_button_clicked(self, widget, test = None):
 		widget.hide()
+		return True
 	#~ def test(self, widget):
 		#~ print(widget)
 	def on_preferences_button_clicked(self, widget):
 		proxy = str(self.config.builder.get_object('preferences_proxy_entry').get_text())
-		if re.match("^[A-Za-z0-9.]*:[0-9]*$",proxy) is not None:
+		if re.match("^[A-Za-z0-9\.]*:[0-9]*$",proxy) is not None:
 			self.config.set_config("proxy",proxy)
 			widget.hide()
 		elif proxy == "":
@@ -179,5 +184,7 @@ class Signals:
 				"You need to set ip:port or domain:port or leave it empty for proxy")
 			dialog.run()
 			dialog.destroy()
+	def return_true(self,*args):
+		return True
 	#~ def on_info_button_clicked(self, widget):
 		#~ self.config.builder.get_object('info_dialog').hide()
