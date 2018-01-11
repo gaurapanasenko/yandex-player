@@ -4,51 +4,110 @@ from mutagen.id3 import ID3NoHeaderError, ID3, TPE1, TIT2, COMM, TALB, APIC
 from shutil import copyfile
 
 class Song:
-	def __init__(self,config,albumid,trackid,artist,album,track,cover,duration,bigcover):
+	def __init__(self,config,data):
 		self.config = config
-		if isinstance(albumid,str) and albumid.isdigit():
-			self.albumid = int(albumid)
-		elif isinstance(albumid,int):
-			self.albumid = albumid
-		else:
-			raise ValueError("albumid must be number")
-		if isinstance(trackid,str) and trackid.isdigit():
-			self.trackid = int(trackid)
-		elif isinstance(trackid,int):
-			self.trackid = trackid
-		else:
-			raise ValueError("trackid must be number")
-		if isinstance(artist,str):
-			self.artist = artist
-		else:
-			raise TypeError("artist must be string")
-		if isinstance(album,str):
-			self.album = album
-		else:
-			raise TypeError("album must be string")
-		if isinstance(track,str):
-			self.track = track
-		else:
-			raise TypeError("track must be string")
-		if isinstance(cover,GdkPixbuf.Pixbuf) or cover == None:
+		self.index = None
+		self.song_type = None
+		self.artistid = None
+		self.artist = ""
+		self.albumid = None
+		self.album = ""
+		self.trackid = None
+		self.track = ""
+		self.duration = None
+		self.cover_url = None
+		self.cover = None
+		if 'artistid' not in data and 'artist' not in data: return
+		if 'artistid' in data:
+			try:
+				self.artistid = int(data['artistid'])
+			except: return
+		if 'artist' in data:
+			self.artist = str(data['artist'].encode('utf-8'))
+
+		if bool('albumid' not in data) != bool('album' not in data): return
+		if 'albumid' in data:
+			try:
+				self.albumid = int(data['albumid'])
+			except: return
+		if 'album' in data:
+			self.album = str(data['album'].encode('utf-8'))
+
+		if bool('trackid' not in data) != bool('track' not in data): return
+		if 'trackid' in data:
+			try:
+				self.trackid = int(data['trackid'])
+			except: return
+		if 'track' in data:
+			self.track = str(data['track'].encode('utf-8'))
+
+		if self.artistid is not None and self.albumid is None and self.trackid is None:
+			self.song_type = 'artist'
+		elif self.artistid is not None and self.albumid is not None and self.trackid is None:
+			self.song_type = 'album'
+		elif self.artistid is not None and self.albumid is not None and self.trackid is not None:
+			self.song_type = 'song'
+		else: return
+
+		if 'cover' in data and isinstance(data['cover'],GdkPixbuf.Pixbuf):
 			self.cover = cover
 		else:
-			cover = False
-			#~ raise TypeError("cover must be GdkPixbuf.Pixbuf or bool")
-		if isinstance(duration,str) and duration.isdigit():
-			self.duration = int(duration)
-		elif isinstance(duration,int):
-			self.duration = duration
+			self.cover = None
+
+		if 'cover_url' in data:
+			self.cover_url = str(data['cover_url'])
+
+		if 'duration' in data:
+			try:
+				self.duration = int(data['duration'])
+			except: pass
+
+	def is_valid(self):
+		return self.song_type != None
+
+	def get_type(self):
+		return self.song_type
+
+	def get_duration(self):
+		return self.duration
+
+	def get_string_duration(self):
+		if self.duration is None: return None
 		else:
-			raise ValueError("duration must be number")
-		if isinstance(bigcover,str):
-			self.bigcover = bigcover
-		else:
-			raise TypeError("bigcover must be string")
+			return str(self.duration/60) + ':' + str(self.duration/10%6)+str(self.duration%10)
+
+	def get_cover_url(self):
+		return self.cover_url
+
+	def set_cover(self, pixbuf):
+		self.cover = pixbuf
+
+	def get_cover(self):
+		return self.cover
+
+	def set_index(self, index):
+		self.index = index
+
+	def get_index(self):
+		return self.index
+
+	def get_label(self):
+		if self.song_type != "song":
+			return False
+		return self.artist + " - " + self.track
+
+	def get_data(self):
+		return [self.index,self.cover,self.artist,self.album,self.track,self.get_string_duration()]
+
 	def download(self,on_finish=None,*args):
+		if self.song_type != "song":
+			return False
 		url = 'https://music.yandex.ua/api/v2.1/handlers/track/' + str(self.trackid) + ':' + str(self.albumid) + '/web-search-album-album-main/download/m'
 		self.config.network.go(url,self.download_event,on_finish,0,*args)
-	def download_event(self,data,on_finish=None,stage=0,*args):
+
+	def download_event(self,url,data,on_finish=None,stage=0,*args):
+		if self.song_type != "song":
+			return False
 		if stage == 0:
 			dt = json.loads(data)
 			self.config.network.go(str(dt['src'] + "&format=json"),self.download_event,on_finish,1,*args)
@@ -64,19 +123,19 @@ class Song:
 				on_finish(*args)
 		else:
 			return False
+
 	def get_path(self):
+		if self.song_type != "song":
+			return False
 		path = self.config.temp_folder + "/" + str(self.albumid) + "_" + str(self.trackid) + ".mp3"
 		if os.path.isfile(path):
 			return str(path)
 		else:
 			return False
-	def get_duration(self):
-		return self.duration
-	def get_label(self):
-		return self.artist + " - " + self.track
-	def get_cover(self):
-		return self.cover
+
 	def save(self,path):
+		if self.song_type != "song":
+			return False
 		tmp_path = self.get_path()
 		if tmp_path == False:
 			return False
@@ -87,7 +146,7 @@ class Song:
 		audio['TIT2'] = TIT2(encoding=3, text=str(self.track).decode('utf-8'))
 		audio['TPE1'] = TPE1(encoding=3, text=str(self.artist).decode('utf-8'))
 		audio['TALB'] = TALB(encoding=3, text=str(self.album).decode('utf-8'))
-		data = self.config.network.go_direct(self.bigcover)
+		data = self.config.network.go_direct(self.cover_url.replace("%%","400x400"))
 		audio['APIC'] = APIC(encoding=3, mime='image/jpeg', type=3, desc=u'Cover', data=data)
 		audio.save(tmp_path)
 		copyfile(tmp_path,path)

@@ -12,9 +12,9 @@ class Network:
 		else:
 			self.proxy = None
 		self.urls = []
-		self.thread = threading.Thread(target=self.background)
-		self.thread.daemon = True
-		self.thread.start()
+		#~ self.thread = threading.Thread(target=self.background)
+		#~ self.thread.daemon = True
+		#~ self.thread.start()
 	def go_direct(self,url):
 		self.config.spinner.start()
 		cj = cookielib.MozillaCookieJar()
@@ -57,25 +57,22 @@ class Network:
 		#~ self.urls.append([url,function,args])
 		return True
 	def go_threaded(self,url,function,args):
-		GLib.idle_add(function,self.go_direct(url),*args)
-	def background(self):
-		while True:
-			#~ for i in self.urls:
-				#~ GLib.idle_add(i[1],self.go_direct(i[0]),*i[2])
-				#~ self.urls.remove(i)
-			if len(self.urls) == 0:
-				time.sleep(0.25)
-			elif len(self.urls) == 1:
-				i = self.urls[0]
-				del self.urls[0]
-				GLib.idle_add(i[1],self.go_direct(i[0]),*i[2])
-			else:
-				i = self.urls[0]
-				del self.urls[0]
-				GLib.idle_add(i[1],self.go_direct(i[0]),*i[2])
-				i = self.urls[-1]
-				del self.urls[-1]
-				GLib.idle_add(i[1],self.go_direct(i[0]),*i[2])
+		GLib.idle_add(function,url,self.go_direct(url),*args)
+	#~ def background(self):
+		#~ while True:
+			#~ if len(self.urls) == 0:
+				#~ time.sleep(0.25)
+			#~ elif len(self.urls) == 1:
+				#~ i = self.urls[0]
+				#~ del self.urls[0]
+				#~ GLib.idle_add(i[1],i[0],self.go_direct(i[0]),*i[2])
+			#~ else:
+				#~ i = self.urls[0]
+				#~ del self.urls[0]
+				#~ GLib.idle_add(i[1],i[0],self.go_direct(i[0]),*i[2])
+				#~ i = self.urls[-1]
+				#~ del self.urls[-1]
+				#~ GLib.idle_add(i[1],i[0],self.go_direct(i[0]),*i[2])
 	def check_cookies_file(self):
 		if os.path.isfile(COOKIES_FILE):
 			with open(COOKIES_FILE, 'r') as f:

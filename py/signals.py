@@ -1,5 +1,5 @@
 import json, os, re
-from gi.repository import Gtk, Gio, GdkPixbuf
+from gi.repository import Gtk
 from py.song import Song
 from py.webbrowser import WebBrowser
 
@@ -19,96 +19,53 @@ class Signals:
 		self.config.builder.get_object('notebook').set_current_page(0)
 		self.on_search_button_clicked(False)
 	def on_search_button_clicked(self, widget):
-		text = self.config.builder.get_object('search_entry').get_text().replace(' ','+')
+		text = self.config.builder.get_object('search_entry').get_text()
 		combobox = self.config.builder.get_object('search_combobox')
 		index = combobox.get_active()
 		model = combobox.get_model()
+		self.config.set_config("search_entry",text)
+		self.config.set_config("search_combobox",index)
+		text = text.replace(' ','+')
 		url = 'https://music.yandex.ru/handlers/music-search.jsx?text=' + text + '&type=' + model[index][1] + '&lang=uk'
 		raw = self.config.network.go(url,self.on_search_received)
-	def on_search_received(self,raw):
+	def on_search_received(self,url,raw):
 		if raw == False:
 			return False
 		if ('<!DOCTYPE html>' == raw[0:15]):
 			self.captcha()
-		else:
-			self.parse_resp(json.loads(raw))
-	def parse_resp(self, data):
-		ts = self.config.builder.get_object('treestore')
-		ts.clear()
+			return False
+		self.config.songs.clear()
+		data = json.loads(raw)
 		for i in data['artists']['items']:
-			big_cover_url = None
-			if 'cover' in i:
-				url = 'https://'+i['cover']['uri'].replace('%%','50x50')
-				big_cover_url = 'https://' + i['cover']['uri'].replace('%%','400x400')
-			pi = ts.append(None,[i['id'],None,None,None,i['name'],'','',None,'',big_cover_url])
-			if 'cover' in i:
-				self.config.network.go(url,self.load_cover,url,ts,pi)
+			parent = self.config.songs.append(None,{
+				'artistid': i['id'],
+				'artist': i['name'],
+				'cover_url': str('https://' + i['cover']['uri']) if 'cover' in i else None
+			})
 			for j in i['popularTracks']:
-				durs = j['durationMs']/1000
-				big_cover_url = None
-				if 'coverUri' in j['albums'][0]:
-					url = 'https://' + j['albums'][0]['coverUri'].replace('%%','50x50')
-					big_cover_url = 'https://' + j['albums'][0]['coverUri'].replace('%%','400x400')
-				pti = ts.append(pi,[
-					i['id'],
-					j['albums'][0]['id'],
-					j['id'],
-					None,
-					i['name'],
-					j['albums'][0]['title'],
-					j['title'],
-					durs,
-					str(durs/60) + ':' + str(durs/10%6)+str(durs%10),
-					big_cover_url
-				])
-				if 'coverUri' in j['albums'][0]:
-					self.config.network.go(url,self.load_cover,url,ts,pti)
+				self.config.songs.append(parent,{
+					'artistid': i['id'],
+					'artist': i['name'],
+					'albumid': j['albums'][0]['id'],
+					'album': j['albums'][0]['title'],
+					'trackid': j['id'],
+					'track': j['title'],
+					'duration': j['durationMs']/1000,
+					'cover_url': str('https://' + j['albums'][0]['coverUri']) if 'coverUri' in j['albums'][0] else None
+				})
 		for j in data['tracks']['items']:
-			durs = j['durationMs']/1000
-			big_cover_url = None
-			if 'coverUri' in j['albums'][0]:
-				url = 'https://' + j['albums'][0]['coverUri'].replace('%%','50x50')
-				big_cover_url = 'https://' + j['albums'][0]['coverUri'].replace('%%','400x400')
-			pti = ts.append(None,[
-				j['artists'][0]['id'],
-				j['albums'][0]['id'],
-				j['id'],
-				None,
-				j['artists'][0]['name'],
-				j['albums'][0]['title'],
-				j['title'],
-				durs,
-				str(durs/60) + ':' + str(durs/10%6)+str(durs%10),
-				big_cover_url
-			])
-			if 'coverUri' in j['albums'][0]:
-				self.config.network.go(url,self.load_cover,url,ts,pti)
-	def load_cover(self,raw,url,model,iter,count=0):
-		if model.iter_is_valid(iter) is not True:
-			return False
-		if raw == False:
-			if count < 10:
-				self.config.network.go(self,raw,url,model,iter,count+1)
-			return False
-		input_stream = Gio.MemoryInputStream.new_from_data(raw, None)
-		pixbuf = GdkPixbuf.Pixbuf.new_from_stream(input_stream, None)
-		model.set(iter,3,pixbuf)
+			self.config.songs.append(None,{
+				'artistid': j['artists'][0]['id'],
+				'artist': j['artists'][0]['name'],
+				'albumid': j['albums'][0]['id'],
+				'album': j['albums'][0]['title'],
+				'trackid': j['id'],
+				'track': j['title'],
+				'duration': j['durationMs']/1000,
+				'cover_url': str('https://' + j['albums'][0]['coverUri']) if 'coverUri' in j['albums'][0] else None
+			})
 	def on_treeview_row_activated(self, treeview, path, view_column):
-		ts = self.config.builder.get_object('treestore')
-		ti = ts.get_iter(path)
-		data = {
-			'albumid': ts.get_value(ti,1),
-			'trackid': ts.get_value(ti,2),
-			'cover': ts.get_value(ti,3),
-			'artist': ts.get_value(ti,4),
-			'album': ts.get_value(ti,5),
-			'track': ts.get_value(ti,6),
-			'duration': ts.get_value(ti,7),
-			'bigcover': ts.get_value(ti,9),
-			'config': self.config,
-		}
-		if (data['albumid'] and data['trackid']):
-			self.config.player.play(Song(**data))
+		self.config.songs.activate(path)
 	def on_player_button_clicked(self, widget):
 		self.config.player.toggle()
 	def on_player_scale_change_value(self, widget, scroll, value):
@@ -117,11 +74,13 @@ class Signals:
 		filechooserdialog = Gtk.FileChooserDialog("Save As", self.config.builder.get_object("window"),
 			Gtk.FileChooserAction.SAVE,
 			(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-			Gtk.STOCK_SAVE, Gtk.ResponseType.ACCEPT))
+			Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
 		filechooserdialog.set_current_name(self.config.player.song.get_label() + ".mp3")
+		if 'last_folder' in self.config and self.config['last_folder'] is not None:
+			filechooserdialog.set_current_folder(self.config['last_folder'])
 		#~ self.config.player.pause()
 		response = filechooserdialog.run()
-		if response != Gtk.ResponseType.ACCEPT:
+		if response != Gtk.ResponseType.OK:
 			return False
 		filename = filechooserdialog.get_filename()
 		if filename == None:
@@ -138,6 +97,7 @@ class Signals:
 			dialog.destroy()
 			if response != Gtk.ResponseType.YES:
 				return False
+		self.config.set_config('last_folder',filechooserdialog.get_current_folder())
 		filechooserdialog.destroy()
 		if self.config.player.song.save(str(filename)) == True:
 			dialog = Gtk.MessageDialog(self.config.builder.get_object("window"),

@@ -1,6 +1,7 @@
 import pygame, threading, time
 from gi.repository import Gtk, GLib
 from py.song import Song
+import time
 
 class Player:
 	def __init__(self,grid,cover_obj,button_img,label,adjustment):
@@ -15,6 +16,7 @@ class Player:
 		self.thread = threading.Thread(target=self.update_position)
 		self.thread.daemon = True
 		self.thread.start()
+		self.replace = time.time()
 	def play(self,song=None,replace=True):
 		if song == None:
 			pygame.mixer.music.unpause()
@@ -23,9 +25,9 @@ class Player:
 		elif isinstance(song,Song):
 			path = song.get_path()
 			if path == False:
-				self.song = song
-				song.download(self.play,song,False)
-			elif replace == True or (replace == False and id(song) == id(self.song)):
+				self.replace = time.time()
+				song.download(self.play,song,self.replace)
+			elif replace == True or (replace == self.replace):
 				self.song = song
 				cover = self.song.get_cover()
 				if cover:

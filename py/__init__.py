@@ -5,6 +5,7 @@ from py.signals import Signals
 from py.spinner import Spinner
 from py.network import Network
 from py.player import Player
+from py.songs import Songs
 
 def main():
 	GObject.threads_init()
@@ -17,6 +18,11 @@ def main():
 	config.builder = Gtk.Builder()
 	config.builder.add_from_file(config.ui_file)
 	config.builder.connect_signals(config.signals)
+	if 'search_entry' in config:
+		config.builder.get_object('search_entry').set_text(config['search_entry'])
+	if 'search_combobox' in config:
+		config.builder.get_object('search_combobox').set_active(config['search_combobox'])
+	config.songs = Songs(config)
 	config.spinner = Spinner(config.builder.get_object('spinner'))
 	config.network = Network(config)
 	config.player = Player(
