@@ -17,6 +17,8 @@ class Song:
 		self.duration = None
 		self.cover_url = None
 		self.cover = None
+		self.all_songs = False
+
 		if 'artistid' not in data and 'artist' not in data: return
 		if 'artistid' in data:
 			try:
@@ -42,7 +44,9 @@ class Song:
 			self.track = str(data['track'].encode('utf-8'))
 
 		if self.artistid is not None and self.albumid is None and self.trackid is None:
-			self.song_type = 'artist'
+			if self.artistid == -1:
+				self.song_type = 'info'
+			else: self.song_type = 'artist'
 		elif self.artistid is not None and self.albumid is not None and self.trackid is None:
 			self.song_type = 'album'
 		elif self.artistid is not None and self.albumid is not None and self.trackid is not None:
@@ -67,6 +71,16 @@ class Song:
 
 	def get_type(self):
 		return self.song_type
+
+	def get_all_songs(self):
+		return self.all_songs
+	def set_all_songs(self,key):
+		self.all_songs = key
+
+	def get_artist_id(self):
+		return self.artistid
+	def get_album_id(self):
+		return self.albumid
 
 	def get_duration(self):
 		return self.duration

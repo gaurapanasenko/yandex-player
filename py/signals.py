@@ -27,43 +27,7 @@ class Signals:
 		self.config.set_config("search_combobox",index)
 		text = text.replace(' ','+')
 		url = 'https://music.yandex.ru/handlers/music-search.jsx?text=' + text + '&type=' + model[index][1] + '&lang=uk'
-		raw = self.config.network.go(url,self.on_search_received)
-	def on_search_received(self,url,raw):
-		if raw == False:
-			return False
-		if ('<!DOCTYPE html>' == raw[0:15]):
-			self.captcha()
-			return False
-		self.config.songs.clear()
-		data = json.loads(raw)
-		for i in data['artists']['items']:
-			parent = self.config.songs.append(None,{
-				'artistid': i['id'],
-				'artist': i['name'],
-				'cover_url': str('https://' + i['cover']['uri']) if 'cover' in i else None
-			})
-			for j in i['popularTracks']:
-				self.config.songs.append(parent,{
-					'artistid': i['id'],
-					'artist': i['name'],
-					'albumid': j['albums'][0]['id'],
-					'album': j['albums'][0]['title'],
-					'trackid': j['id'],
-					'track': j['title'],
-					'duration': j['durationMs']/1000,
-					'cover_url': str('https://' + j['albums'][0]['coverUri']) if 'coverUri' in j['albums'][0] else None
-				})
-		for j in data['tracks']['items']:
-			self.config.songs.append(None,{
-				'artistid': j['artists'][0]['id'],
-				'artist': j['artists'][0]['name'],
-				'albumid': j['albums'][0]['id'],
-				'album': j['albums'][0]['title'],
-				'trackid': j['id'],
-				'track': j['title'],
-				'duration': j['durationMs']/1000,
-				'cover_url': str('https://' + j['albums'][0]['coverUri']) if 'coverUri' in j['albums'][0] else None
-			})
+		raw = self.config.network.go(url,self.config.songs.set_from_json)
 	def on_treeview_row_activated(self, treeview, path, view_column):
 		self.config.songs.activate(path)
 	def on_player_button_clicked(self, widget):
