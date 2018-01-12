@@ -110,5 +110,8 @@ class Signals:
 			dialog.destroy()
 	def return_true(self,*args):
 		return True
+	def on_treeview_row_expanded(self,treeview,iter,path):
+		index = self.config.songs.model.get_value(iter,0)
+		self.config.songs.load_covers(index)
 	#~ def on_info_button_clicked(self, widget):
 		#~ self.config.builder.get_object('info_dialog').hide()
